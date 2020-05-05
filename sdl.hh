@@ -88,6 +88,10 @@ public:
         SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
         return {.x=0, .y=0, .w=width, .h=height};
     }
+    auto update(const std::optional<SDL_Rect>& rect, const void* pixels, int pitch)
+    {
+        return SDL_UpdateTexture(texture, rect ? &rect.value() : nullptr, pixels, pitch);
+    }
     auto render(const Renderer& renderer, const std::optional<SDL_Rect>& srcrect,
                const std::optional<SDL_Rect>& dstrect) const
     {
