@@ -17,6 +17,12 @@
 
 namespace SDL
 {
+struct Size
+{
+    int width;
+    int height;
+};
+
 class Window
 {
     friend class Renderer;
@@ -29,6 +35,12 @@ public:
     ~Window()
     {
         if (window) SDL_DestroyWindow(window);
+    }
+    auto getSize(void) const noexcept
+    {
+        SDL::Size size;
+        SDL_GetWindowSize(window, &size.width, &size.height);
+        return size;
     }
 private:
     SDL_Window* window;
@@ -60,6 +72,10 @@ public:
     {
         return SDL_RenderDrawLineF(renderer, x1, y1, x2, y2);
     }
+    auto FillRect(SDL_Rect rect) const
+    {
+        return SDL_RenderFillRect(renderer, &rect);
+    }
     auto Present() const
     {
         return SDL_RenderPresent(renderer);
@@ -77,10 +93,29 @@ public:
         texture = SDL_CreateTexture(renderer.renderer, format, access, w, h);
         if (!texture) throw std::runtime_error("Could not create texture");
     }
-    Texture(SDL_Texture* texture) : texture(texture) {};
+    Texture(const SDL::Renderer& renderer, Uint32 format, int access, SDL::Size size)
+    {
+        Texture(renderer, format, access, size.width, size.height);
+    }
+    Texture(SDL_Texture* texture) : texture(texture) {}
     ~Texture()
     {
         if (texture) SDL_DestroyTexture(texture);
+    }
+    auto& operator [](size_t row)
+    {
+        return *reinterpret_cast<char (*)[lockedWidth][3]>((char*)textureAddr + pitch*row);
+    }
+    void lock(const std::optional<SDL_Rect>& rect)
+    {
+        if (!rect) SDL_QueryTexture(texture, nullptr, nullptr, &lockedWidth, nullptr);
+        else lockedWidth = rect.value().w;
+
+        SDL_LockTexture(texture, rect ? &rect.value() : nullptr, &textureAddr, &pitch);
+    }
+    void unlock(void)
+    {
+        SDL_UnlockTexture(texture);
     }
     SDL_Rect getRect() const
     {
@@ -101,6 +136,9 @@ public:
     
 private:
     SDL_Texture* texture;
+    int lockedWidth;
+    int pitch;
+    void* textureAddr;
 };
 
 class Font
