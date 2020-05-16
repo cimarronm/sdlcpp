@@ -68,6 +68,18 @@ public:
     {
         return SDL_RenderClear(renderer);
     }
+    auto DrawPoint(int x, int y) const
+    {
+        return SDL_RenderDrawPoint(renderer, x, y);
+    }
+    auto DrawPointF(float x, float y) const
+    {
+        return SDL_RenderDrawPoint(renderer, x, y);
+    }
+    auto DrawLine(int x1, int y1, int x2, int y2) const
+    {
+        return SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
+    }
     auto DrawLineF(float x1, float y1, float x2, float y2) const
     {
         return SDL_RenderDrawLineF(renderer, x1, y1, x2, y2);
@@ -75,6 +87,10 @@ public:
     auto FillRect(SDL_Rect rect) const
     {
         return SDL_RenderFillRect(renderer, &rect);
+    }
+    auto SetViewPort(const std::optional<SDL_Rect>& rect={}) const
+    {
+        return SDL_RenderSetViewport(renderer, rect ? &rect.value() : nullptr);
     }
     auto Present() const
     {
@@ -122,6 +138,14 @@ public:
         int width, height;
         SDL_QueryTexture(texture, nullptr, nullptr, &width, &height);
         return {.x=0, .y=0, .w=width, .h=height};
+    }
+    auto SetBlendMode(SDL_BlendMode mode)
+    {
+        return SDL_SetTextureBlendMode(texture, mode);
+    }
+    auto SetColorMod(uint8_t r, uint8_t g, uint8_t b) const
+    {
+        return SDL_SetTextureColorMod(texture, r, g, b);
     }
     auto update(const std::optional<SDL_Rect>& rect, const void* pixels, int pitch)
     {
